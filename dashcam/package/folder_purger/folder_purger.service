@@ -1,0 +1,13 @@
+[Unit]
+Description=Folder Purger
+After=network.target
+
+[Service]
+User=root
+WorkingDirectory=/opt/dashcam/bin
+Environment="LD_LIBRARY_PATH=/opt/dashcam/lib"
+ExecStart=/opt/dashcam/bin/folder-purger /tmp/recording/pic 400000000 /mnt/data/gps 2000000000 /mnt/data/imu 2000000000  /mnt/data/ml_metadata 20000000 /mnt/data/raw 5000000 /mnt/data/unprocessed_framekm 8000000000 /mnt/data/unprocessed_metadata 20000000
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

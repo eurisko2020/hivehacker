@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block title %}Dashboard - Dashcam{% endblock %}
+{% block content %}
+<div class="dashboard">
+    <div class="status-card">
+        <h2>System Status</h2>
+        <div class="status-badge" id="mode-badge">{{ status.mode }}</div>
+        <div class="status-grid">
+            <div class="status-item">
+                <span class="label">Recording</span>
+                <span class="value" id="recording-state">{{ 'Active' if status.recording else 'Stopped' }}</span>
+            </div>
+            <div class="status-item">
+                <span class="label">CPU Temp</span>
+                <span class="value" id="cpu-temp">{{ status.cpu_temp }}&deg;C</span>
+            </div>
+            <div class="status-item">
+                <span class="label">Uptime</span>
+                <span class="value" id="uptime">{{ (status.uptime_seconds // 3600) }}h {{ ((status.uptime_seconds % 3600) // 60) }}m</span>
+            </div>
+            <div class="status-item">
+                <span class="label">Wi-Fi Clients</span>
+                <span class="value" id="wifi-clients">{{ status.wifi_clients }}</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="storage-card">
+        <h2>Storage</h2>
+        <div class="storage-bar-container">
+            <div class="storage-bar" style="width: {{ status.storage.percentage }}%"></div>
+        </div>
+        <div class="storage-info">
+            <span>{{ status.storage.used_gb }} GB / {{ status.storage.total_gb }} GB ({{ status.storage.percentage }}%)</span>
+        </div>
+        <div class="storage-details">
+            <span>Recordings: {{ status.recordings_count }}</span>
+            <span>Locked: {{ status.locked_count }}</span>
+        </div>
+    </div>
+
+    <div class="gps-card">
+        <h2>GPS</h2>
+        <div class="status-grid">
+            <div class="status-item">
+                <span class="label">Fix</span>
+                <span class="value">{{ 'Yes' if status.gps.fix else 'No' }}</span>
+            </div>
+            <div class="status-item">
+                <span class="label">Satellites</span>
+                <span class="value">{{ status.gps.sats }}</span>
+            </div>
+            <div class="status-item">
+                <span class="label">Speed</span>
+                <span class="value">{{ status.gps.speed }} km/h</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="quick-actions">
+        <h2>Quick Actions</h2>
+        <button onclick="apiPost('/api/system/reboot')" class="btn btn-warning">Reboot</button>
+        <button onclick="apiPost('/api/system/shutdown')" class="btn btn-danger">Shutdown</button>
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+// Auto-refresh status every 5 seconds
+setInterval(async () => {
+    try {
+        const res = await fetch('/api/status');
+        const data = await res.json();
+        document.getElementById('cpu-temp').textContent = data.cpu_temp + '\u00b0C';
+        document.getElementById('wifi-clients').textContent = data.wifi_clients;
+        const upH = Math.floor(data.uptime_seconds / 3600);
+        const upM = Math.floor((data.uptime_seconds % 3600) / 60);
+        document.getElementById('uptime').textContent = upH + 'h ' + upM + 'm';
+    } catch (e) {}
+}, 5000);
+</script>
+{% endblock %}

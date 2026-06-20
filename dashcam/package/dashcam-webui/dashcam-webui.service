@@ -1,0 +1,14 @@
+[Unit]
+Description=Dashcam Web UI
+After=network.target dashcamd.service
+Wants=dashcamd.service
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/python3 /opt/dashcam/webui/app.py
+Restart=always
+RestartSec=5
+Environment=FLASK_APP=/opt/dashcam/webui/app.py
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,24 @@
+config BR2_PACKAGE_DASHCAMD
+	bool "dashcamd"
+	select BR2_PACKAGE_PYTHON3
+	select BR2_PACKAGE_PYTHON3_PYEXPAT
+	select BR2_PACKAGE_PYTHON_SERIAL_ASYNCIO
+	select BR2_PACKAGE_PYTHON_SMBUS_CFFI
+	select BR2_PACKAGE_PYTHON_PYYAML
+	select BR2_PACKAGE_PYTHON_PSUTIL
+	select BR2_PACKAGE_LIBCAMERA
+	select BR2_PACKAGE_LIBCAMERA_APPS
+	select BR2_PACKAGE_LIBCAMERA_V4L2
+	select BR2_PACKAGE_FFMPEG
+	select BR2_PACKAGE_LIBGPIOD
+	select BR2_PACKAGE_I2C_TOOLS
+	help
+	  The core dashcam recording daemon for the clean HDC dashcam firmware.
+	  Replaces camera-bridge, folder-purger, camera-node, data-logger,
+	  and led-controller with a single Python daemon that:
+	  - Records H.264/HEVC video via libcamera-vid + V4L2 hardware encoder
+	  - Manages loop recording with segment rotation and event locking
+	  - Monitors G-sensor (IMU) for impact events
+	  - Supports parking mode with motion-triggered recording
+	  - Logs GPS/IMU telemetry as JSON sidecar metadata
+	  - Controls LED status indicator via GPIO

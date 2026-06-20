@@ -1,0 +1,3 @@
+config BR2_PACKAGE_PYTHON_TYPES_DATACLASSES
+	bool "python-types-dataclasses"
+	select BR2_PACKAGE_PYTHON3

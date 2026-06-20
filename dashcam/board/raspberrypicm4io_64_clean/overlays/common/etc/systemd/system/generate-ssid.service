@@ -1,0 +1,12 @@
+[Unit]
+Description=Generate Unique Wi-Fi SSID from Device Serial
+Before=hostapd.service
+After=systemd-modules-load.service
+
+[Service]
+Type=oneshot
+ExecStart=/opt/dashcam/bin/generate-ssid.sh
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

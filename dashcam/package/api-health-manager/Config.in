@@ -1,0 +1,3 @@
+config BR2_PACKAGE_API_HEALTH_MANAGER
+	bool "api-health-manager"
+  select BR2_PACKAGE_NODEJS

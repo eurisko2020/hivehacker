@@ -1,0 +1,3 @@
+config BR2_PACKAGE_PYTHON_YAPPI
+	bool "python-yappi"
+	select BR2_PACKAGE_PYTHON_SIX # runtime

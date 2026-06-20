@@ -1,0 +1,3 @@
+config BR2_PACKAGE_PYTHON_PANDAS
+	bool "python-pandas"
+	select BR2_PACKAGE_PYTHON3 # runtime

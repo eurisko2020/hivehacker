@@ -1,0 +1,53 @@
+name: Deploy
+
+on: 
+  workflow_dispatch:
+  workflow_run:
+    workflows: ["compile_hdc"]
+    types:
+      - completed
+    branches:
+      - main
+jobs:
+  deploy:
+    name: Upload Firmware to S3
+    runs-on: ubuntu-latest
+    permissions:
+      deployments: write
+    steps:
+      - name: Download artifact from build
+        uses: dawidd6/action-download-artifact@v6
+        with:
+          name: buildroot-hdc
+          workflow: compile_hdc.yml
+          path: tmp
+
+      - name: Grab version.json
+        id: firmware_version_json
+        run: |
+          mv tmp/version.json .
+          version_json=$(cat version.json | tr -d '\n')
+          echo "::set-output name=version::$version_json"
+
+      - uses: shallwefootball/s3-upload-action@master
+        id: upload_s3
+        with:
+          aws_key_id: ${{ secrets.AWS_KEY_ID }} 
+          aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY}}
+          aws_bucket: dashcam-firmware
+          source_dir: 'tmp/'
+          destination_dir: 'cicd'
+
+      - name: Send custom JSON data to Slack workflow
+        id: slack
+        uses: slackapi/slack-github-action@v1.26.0
+        with:
+          # Slack channel id, channel name, or user id to post message.
+          # See also: https://api.slack.com/methods/chat.postMessage#channels
+          # You can pass in multiple channels to post to by providing a comma-delimited list of channel IDs.
+          channel-id: 'hdc-firmware-deploy'
+          # For posting a simple plain text message
+          slack-message: "*${{ github.actor }}* deployed an image based on ${{ github.ref }}\nSHA: ${{ github.sha }}\nVersion JSON:\n```${{ steps.firmware_version_json.outputs.version }}```\nURL: ${{ steps.upload_s3.outputs.object_locations }}"
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          

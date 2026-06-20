@@ -1,0 +1,10 @@
+config BR2_PACKAGE_DASHCAM_WEBUI
+	bool "dashcam-webui"
+	select BR2_PACKAGE_PYTHON3
+	select BR2_PACKAGE_PYTHON_FLASK
+	select BR2_PACKAGE_NGINX
+	help
+	  Web UI for the clean dashcam firmware.
+	  Provides file browser, live preview, settings, events log,
+	  and system controls via a responsive web interface served
+	  by nginx + Flask.

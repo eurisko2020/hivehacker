@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+{% block title %}Settings - Dashcam{% endblock %}
+{% block content %}
+<div class="settings">
+    <h2>Settings</h2>
+    <form id="settings-form" onsubmit="saveSettings(event)">
+
+        <fieldset>
+            <legend>Video / Recording</legend>
+            <div class="form-row">
+                <label>Resolution</label>
+                <select name="camera.width" data-section="camera">
+                    <option value="1920" {% if config.camera.width == '1920' %}selected{% endif %}>1920x1080</option>
+                    <option value="1280" {% if config.camera.width == '1280' %}selected{% endif %}>1280x720</option>
+                </select>
+                <input type="hidden" name="camera.height" value="1080">
+            </div>
+            <div class="form-row">
+                <label>Codec</label>
+                <select name="camera.codec" data-section="camera">
+                    <option value="h264" {% if config.camera.codec == 'h264' %}selected{% endif %}>H.264</option>
+                    <option value="h265" {% if config.camera.codec == 'h265' %}selected{% endif %}>H.265 (HEVC)</option>
+                </select>
+            </div>
+            <div class="form-row">
+                <label>Bitrate (Mbps)</label>
+                <input type="number" name="camera.bitrate" data-section="camera"
+                       value="{{ config.camera.bitrate }}" min="4000000" max="20000000" step="1000000">
+            </div>
+            <div class="form-row">
+                <label>Framerate</label>
+                <select name="camera.framerate" data-section="camera">
+                    <option value="30" {% if config.camera.framerate == '30' %}selected{% endif %}>30 fps</option>
+                    <option value="25" {% if config.camera.framerate == '25' %}selected{% endif %}>25 fps</option>
+                    <option value="24" {% if config.camera.framerate == '24' %}selected{% endif %}>24 fps</option>
+                </select>
+            </div>
+            <div class="form-row">
+                <label>Segment Length (seconds)</label>
+                <input type="range" name="camera.segment_duration" data-section="camera"
+                       value="{{ config.camera.segment_duration }}" min="60" max="600" step="60"
+                       oninput="this.nextElementSibling.textContent = this.value + 's'">
+                <span>{{ config.camera.segment_duration }}s</span>
+            </div>
+        </fieldset>
+
+        <fieldset>
+            <legend>Storage</legend>
+            <div class="form-row">
+                <label>Max Usage (%)</label>
+                <input type="range" name="storage.max_usage" data-section="storage"
+                       value="{{ config.storage.max_usage }}" min="70" max="95"
+                       oninput="this.nextElementSibling.textContent = this.value + '%'">
+                <span>{{ config.storage.max_usage }}%</span>
+            </div>
+        </fieldset>
+
+        <fieldset>
+            <legend>G-Sensor</legend>
+            <div class="form-row">
+                <label>Impact Threshold (G)</label>
+                <input type="range" name="imu.accel_threshold" data-section="imu"
+                       value="{{ config.imu.accel_threshold }}" min="0.3" max="2.0" step="0.1"
+                       oninput="this.nextElementSibling.textContent = this.value + 'G'">
+                <span>{{ config.imu.accel_threshold }}G</span>
+            </div>
+            <div class="form-row">
+                <button type="button" onclick="testEvent()" class="btn">Test Event</button>
+            </div>
+        </fieldset>
+
+        <fieldset>
+            <legend>Wi-Fi</legend>
+            <div class="form-row">
+                <label>SSID</label>
+                <input type="text" name="wifi.ssid" data-section="wifi"
+                       value="{{ config.wifi.ssid }}">
+            </div>
+            <div class="form-row">
+                <label>Password</label>
+                <input type="text" name="wifi.password" data-section="wifi"
+                       value="{{ config.wifi.password }}">
+            </div>
+            <div class="form-row">
+                <label>Channel</label>
+                <input type="number" name="wifi.channel" data-section="wifi"
+                       value="{{ config.wifi.channel }}" min="1" max="161">
+            </div>
+        </fieldset>
+
+        <fieldset>
+            <legend>Parking Mode</legend>
+            <div class="form-row">
+                <label>Entry Timeout (minutes)</label>
+                <input type="number" name="parking.entry_timeout" data-section="parking"
+                       value="{{ (config.parking.entry_timeout | int // 60) }}" min="1" max="30">
+            </div>
+        </fieldset>
+
+        <fieldset>
+            <legend>LED</legend>
+            <div class="form-row">
+                <label>Brightness</label>
+                <input type="range" name="led.brightness" data-section="led"
+                       value="{{ config.led.brightness }}" min="0" max="255"
+                       oninput="this.nextElementSibling.textContent = this.value">
+                <span>{{ config.led.brightness }}</span>
+            </div>
+        </fieldset>
+
+        <button type="submit" class="btn btn-primary">Save Settings</button>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,19 @@
+# Build environment for HDC Clean Dashcam firmware
+# Pinned to Ubuntu 20.04 for Buildroot compatibility (GCC 9, CMake 3.16)
+# This image is reusable — rebuild the firmware anytime by running build.sh
+FROM ubuntu:20.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+ENV TZ=America/New_York
+
+RUN apt-get update && apt-get install -y \
+    sed make binutils build-essential gcc g++ bash patch \
+    gzip bzip2 perl tar cpio unzip rsync file bc wget git \
+    python3 cmake curl jq qtbase5-dev \
+    libncurses5-dev libssl-dev \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+RUN mkdir /dashcam
+WORKDIR /dashcam
+
+CMD ["/bin/bash"]

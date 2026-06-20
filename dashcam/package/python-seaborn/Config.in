@@ -1,0 +1,3 @@
+config BR2_PACKAGE_PYTHON_SEABORN
+	bool "python-seaborn"
+	select BR2_PACKAGE_PYTHON_SEABORN # runtime

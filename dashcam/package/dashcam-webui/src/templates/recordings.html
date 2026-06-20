@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block title %}Recordings - Dashcam{% endblock %}
+{% block content %}
+<div class="recordings">
+    <h2>Recordings ({{ files|length }})</h2>
+
+    <div class="filter-tabs">
+        <button class="tab active" onclick="filterRecordings('all')">All</button>
+        <button class="tab" onclick="filterRecordings('locked')">Locked</button>
+        <button class="tab" onclick="filterRecordings('unlocked')">Unlocked</button>
+    </div>
+
+    <table class="recordings-table">
+        <thead>
+            <tr>
+                <th>Filename</th>
+                <th>Date</th>
+                <th>Duration</th>
+                <th>Size</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody id="recordings-body">
+            {% for f in files %}
+            <tr data-locked="{{ f.locked }}">
+                <td>{{ f.name }}</td>
+                <td>{{ f.date }}</td>
+                <td>{{ f.duration }}s</td>
+                <td>{{ f.size_mb }} MB</td>
+                <td>{{ 'LOCKED' if f.locked else 'Normal' }}</td>
+                <td class="actions">
+                    <a href="/api/recordings/{{ f.name }}" class="btn btn-small">Download</a>
+                    {% if f.locked %}
+                    <button onclick="unlockFile('{{ f.name }}')" class="btn btn-small">Unlock</button>
+                    {% else %}
+                    <button onclick="lockFile('{{ f.name }}')" class="btn btn-small">Lock</button>
+                    <button onclick="deleteFile('{{ f.name }}')" class="btn btn-small btn-danger">Delete</button>
+                    {% endif %}
+                    {% if f.has_meta %}
+                    <a href="/api/recordings/{{ f.name }}/meta" class="btn btn-small">Meta</a>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+function filterRecordings(type) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    event.target.classList.add('active');
+    // Reload with filter
+    window.location.href = '/recordings?filter=' + type;
+}
+
+async function lockFile(name) {
+    await apiPost('/api/recordings/' + name + '/lock');
+    location.reload();
+}
+
+async function unlockFile(name) {
+    await apiPost('/api/recordings/' + name + '/unlock');
+    location.reload();
+}
+
+async function deleteFile(name) {
+    if (!confirm('Delete ' + name + '?')) return;
+    await apiDelete('/api/recordings/' + name);
+    location.reload();
+}
+</script>
+{% endblock %}

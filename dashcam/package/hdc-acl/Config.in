@@ -1,0 +1,4 @@
+config BR2_PACKAGE_HDC_ACL
+	bool "hdc-acl"
+	help
+	  acl binary to lock HDC

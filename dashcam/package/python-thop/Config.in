@@ -1,0 +1,3 @@
+config BR2_PACKAGE_PYTHON_THOP
+	bool "python-thop"
+	select BR2_PACKAGE_PYTHON_SIX # runtime

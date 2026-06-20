@@ -1,0 +1,2 @@
+config BR2_PACKAGE_HOST_PYTHON_SCIKIT_BUILD
+	bool "host python-scikit-build"

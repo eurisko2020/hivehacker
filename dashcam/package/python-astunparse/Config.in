@@ -1,0 +1,3 @@
+config BR2_PACKAGE_PYTHON_ASTUNPARSE
+	bool "python-astunparse"
+	select BR2_PACKAGE_PYTHON3

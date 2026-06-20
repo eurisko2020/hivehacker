@@ -1,0 +1,4 @@
+config BR2_PACKAGE_PYTHON_SCIKIT_BUILD
+	bool "python-scikit-build"
+	# select BR2_PACKAGE_PYTHON_SIX # runtime
+	select BR2_PACKAGE_PYTHON3

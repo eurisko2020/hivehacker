@@ -1,0 +1,28 @@
+# Build artifacts
+output/
+.buildroot-ccache/
+backups/
+
+# Buildroot download cache
+buildroot/dl/
+
+# Temporary files
+*.tmp
+*.swp
+*~
+.DS_Store
+
+# IDE files
+.vscode/
+.idea/
+*.code-workspace
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+
+# Docker
+docker-compose.override.yml

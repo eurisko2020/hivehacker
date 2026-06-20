@@ -1,0 +1,4 @@
+config BR2_PACKAGE_FOLDER_PURGER
+	bool "folder_purger"
+	help
+	  General utility scripts

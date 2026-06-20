@@ -1,0 +1,3 @@
+config BR2_PACKAGE_PYTHON_GITPYTHON
+	bool "python-gitpython"
+	select BR2_PACKAGE_PYTHON_SIX # runtime

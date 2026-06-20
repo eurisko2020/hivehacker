@@ -1,0 +1,16 @@
+[Unit]
+Description=Dashcam Recording Daemon
+After=network.target systemd-modules-load.service
+Wants=systemd-modules-load.service
+
+[Service]
+Type=simple
+ExecStart=/opt/dashcam/bin/dashcamd
+Restart=always
+RestartSec=5
+WatchdogSec=30
+Environment=PYTHONUNBUFFERED=1
+Environment=DASHCAM_CONFIG=/etc/dashcamd.conf
+
+[Install]
+WantedBy=multi-user.target

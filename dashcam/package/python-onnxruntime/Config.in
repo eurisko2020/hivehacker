@@ -1,0 +1,4 @@
+config BR2_PACKAGE_PYTHON_ONNXRUNTIME
+	bool "python-onnxruntime"
+	select BR2_PACKAGE_PYTHON3 # runtime
+	select BR2_PACKAGE_PYTHON_PIP
