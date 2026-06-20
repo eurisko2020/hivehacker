@@ -1,22 +1,31 @@
-<div align="center">
+<p align="center">
+  <img src="docs/logo-banner.png" alt="HiveHacker Logo" width="400">
+</p>
 
-# 🐝 HiveHacker
+<h3 align="center">Free Your Hivemapper HDC — Turn It Into a High-End Standalone Dashcam</h3>
 
-### Free Your Hivemapper HDC — Turn It Into a High-End Standalone Dashcam
+<p align="center">
+  <b>Professional dashcam firmware. Open source. No strings. No cloud. No disassembly.</b>
+</p>
 
-**Professional dashcam firmware. Open source. No strings. No cloud. No disassembly.**
+<p align="center">
+  <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT"></a>
+  <a href="https://www.raspberrypi.com/products/compute-module-4/"><img src="https://img.shields.io/badge/Platform-RPi%20CM4%20%2B%20IMX477-blue.svg" alt="Platform"></a>
+  <a href="https://en.wikipedia.org/wiki/Advanced_Video_Coding"><img src="https://img.shields.io/badge/Codec-H.264%20%2F%20HEVC-red.svg" alt="Codec"></a>
+</p>
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Platform: RPi CM4](https://img.shields.io/badge/Platform-RPi%20CM4%20%2B%20IMX477-blue.svg)](https://www.raspberrypi.com/products/compute-module-4/)
-[![Codec: H.264](https://img.shields.io/badge/Codec-H.264%20%2F%20HEVC-red.svg)](https://en.wikipedia.org/wiki/Advanced_Video_Coding)
-
-🌍 **Website:** [www.hivehacker.ca](https://www.hivehacker.ca) · 
-💻 **Code by:** Eurisko2020 · 
-📖 **Docs:** [BUILD.md](BUILD.md) · [CONTRIBUTING.md](CONTRIBUTING.md)
-
-</div>
+<p align="center">
+  🌍 <a href="https://www.hivehacker.ca"><b>www.hivehacker.ca</b></a> · 
+  💻 Code by <b>Eurisko2020</b> · 
+  📖 <a href="BUILD.md">Build Guide</a> · 
+  <a href="CONTRIBUTING.md">Contributing</a>
+</p>
 
 ---
+
+<p align="center">
+  <img src="docs/logo-small.png" alt="HiveHacker" align="center">
+</p>
 
 ## 🎯 What Is HiveHacker?
 
@@ -24,7 +33,13 @@ HiveHacker replaces the factory Hivemapper firmware with a clean, purpose-built 
 
 The Hivemapper HDC is excellent hardware — a Raspberry Pi Compute Module 4 with a Sony IMX477 camera sensor, GPS, IMU, and Wi-Fi, all in a car-ready enclosure. But the stock firmware captures **72,000 individual JPEG photos per hour** instead of real video. HiveHacker unlocks the hardware's full potential using the BCM2711's **dedicated hardware video encoder** to produce proper H.264 MP4 files at 1080p30.
 
+> *"The dashcam Hivemapper should have shipped."*
+
 ---
+
+<p align="center">
+  <img src="docs/logo-small.png" alt="HiveHacker" align="center">
+</p>
 
 ## ⚡ Key Improvements Over Stock
 
@@ -46,14 +61,19 @@ The Hivemapper HDC is excellent hardware — a Raspberry Pi Compute Module 4 wit
 | Cloud dependency | Required | ✅ None — fully offline |
 | Wi-Fi per device | Fixed SSID | ✅ Auto-generated unique hivehackerXXXX |
 | SSH access | Password only | ✅ Auto-generated password + key auth |
+| Timezone support | ❌ | ✅ Local timestamps on all recordings |
 
 ---
+
+<p align="center">
+  <img src="docs/logo-small.png" alt="HiveHacker" align="center">
+</p>
 
 ## 🌟 Features
 
 ### 🎥 Video Recording
 - **H.264/HEVC hardware encoding** at 1080p30 via BCM2711 V4L2 encoder (zero CPU)
-- Bitrate adjustable in Mbps (4-20 Mbps) from your phone
+- Bitrate adjustable in **Mbps** (4-20 Mbps) — no confusing raw numbers
 - Segment length: 1-10 minutes, configurable
 - Each segment is a standalone MP4 — plays in any player instantly
 - Recording starts automatically within 15 seconds of power-on
@@ -63,30 +83,37 @@ When you connect to the dashcam's Wi-Fi, the dashboard **automatically pops up**
 - **Live camera feed** with a **blinking REC indicator** and recording timer
 - **Dual storage display** — Device (eMMC) + External USB, each with space used and estimated recording time remaining
 - Status cards: mode, GPS, temperature, uptime, local time, locked recordings count
+- Quick actions: View Recordings, Full Screen Live, Lock Current Segment
 
 ### 🔄 Loop Recording & Storage Management
-- Automatic deletion of oldest unlocked segments at configurable threshold
-- Supports eMMC (internal) or microSD or external USB or both
+Never run out of space. HiveHacker automatically manages storage:
+- Automatic deletion of oldest unlocked segments at configurable threshold (70-95%)
+- Supports eMMC (internal), microSD, or external USB, or both (USB overflow)
 - **32GB = ~7 hours** H.264, **128GB = ~28 hours**, HEVC: **128GB = ~47 hours**
 
 ### 💥 G-Sensor Impact Protection
 - Detects impacts (0.3G-2.0G, adjustable) and locks current segment
 - LED flashes rapidly on event
 - Events logged with timestamp, G-force, segment filename
+- Sensitivity options: High / Medium / Low / Very Low
 
 ### 🅿️ Parking Mode
 - Auto-enters after configurable timeout (1-30 min no movement)
 - Motion-triggered recording with 30s pre-event buffer + 60s post-event
 - Low-power mode with optional Wi-Fi disable
+- Auto-exits when GPS detects movement
 
-### 💡 LED Controls
-Three physical LEDs with **Apple-style toggle switches** in the web UI:
-- **Power LED** — solid when device is on
-- **GPS LED** — solid when GPS has fix, blinks when searching
-- **REC LED** — blinks red while recording, solid on event, slow pulse in parking mode
+### 💡 LED Controls — 3 Physical LEDs with Apple-Style Toggles
+<p align="center">
+  <img src="docs/logo-small.png" alt="" width="32" align="center"> Three physical LEDs on the HDC, each independently controllable:
+</p>
+
+- **💡 Power LED** — solid when device is powered (toggle on/off)
+- **📡 GPS LED** — solid when GPS has fix, blinks when searching (toggle on/off)
+- **🔴 REC LED** — blinks red while recording, solid on event, slow pulse in parking mode (toggle on/off)
 - Adjustable brightness (0-255)
 
-### 📧 Email / SMTP
+### 📧 Email / SMTP — Send Recordings Directly
 Configure your email server in Settings to **send recordings directly from the file browser**:
 - SMTP settings (Gmail, Outlook, etc.)
 - "Send" button on each recording opens email dialog
@@ -100,7 +127,7 @@ Configure your email server in Settings to **send recordings directly from the f
 - Select recording storage: Device / External USB / Both (overflow)
 
 ### 📡 GPS & Timezone
-- Local timezone support (Eastern, Central, Pacific, etc.)
+- **Local timezone support** (Eastern, Central, Mountain, Pacific, etc.)
 - Recordings timestamped in local time
 - Optional OSD overlay (timestamp + speed + GPS burned into video)
 - Speed in km/h or mph
@@ -116,52 +143,57 @@ Configure your email server in Settings to **send recordings directly from the f
 - Bulk actions
 
 ### ⚙️ Settings (All Live, No Reboot)
-- Video: resolution, codec, bitrate (Mbps), framerate, segment length
-- Storage: device selection, max usage, locked retention
-- G-Sensor: sensitivity (High/Medium/Low), test button
-- Parking: entry timeout, exit trigger, Wi-Fi in parking
-- GPS: timezone, speed unit, OSD overlay
-- LED: individual toggles for Power/GPS/REC, brightness
-- Wi-Fi: auto-generated unique SSID + password
-- Email: SMTP server, port, credentials, enable/disable toggle
-- Security: web UI password (optional), SSH key management
+- **Video:** resolution, codec, bitrate (Mbps), framerate, segment length
+- **Storage:** device selection, max usage, locked retention (7/14/30/90 days)
+- **G-Sensor:** sensitivity (High/Medium/Low), test button
+- **Parking:** entry timeout, exit trigger, Wi-Fi in parking
+- **GPS:** timezone, speed unit, OSD overlay
+- **LED:** individual toggles for Power/GPS/REC, brightness
+- **Wi-Fi:** auto-generated unique SSID + password (read-only)
+- **Email:** SMTP server, port, credentials, enable/disable toggle
+- **Security:** web UI password (optional), SSH key management
 
 ### 🔄 Firmware Update
 - **Upload .raucb via browser** — update directly from web UI
 - **USB stick method** — documented in-app, no computer needed
-- A/B partition with automatic rollback
+- A/B partition with automatic rollback (10 failed boots = revert)
 
 ### 🔒 Privacy & Security
-- Fully offline — no internet required
+- **Fully offline** — no internet required at any point
 - No cloud, telemetry, analytics, or phone-home
-- SSH: auto-generated unique password per device (hivehacksshXXXX)
+- SSH: auto-generated unique password per device (**hivehacksshXXXX**)
 - SSH: key-based authentication supported
-- WPA2-PSK Wi-Fi with unique SSID per device
+- WPA2-PSK Wi-Fi with unique SSID per device (**hivehackerXXXX** / **hivehak!**)
 
 ---
 
+<p align="center">
+  <img src="docs/logo-medium.png" alt="HiveHacker" width="256">
+</p>
+
 ## 🚀 Quick Start
 
-### Build the Firmware
+### 1. Build the Firmware
 ```bash
 git clone --recurse-submodules https://github.com/eurisko2020/hivehacker.git
 cd hivehacker
 ./docker-build.sh
 ```
+Requires Docker. Build takes 30-60 minutes (first time).
 
-### Create USB Update Stick
+### 2. Create USB Update Stick
 ```bash
 sudo ./usb-update.sh /dev/sdX
 ```
 
-### Flash Your HDC (No Disassembly!)
+### 3. Flash Your HDC (No Disassembly!)
 1. Power OFF your HDC
 2. Insert the USB stick
 3. Power ON
 4. Wait 2-3 minutes — LEDs will cycle
 5. HDC reboots into HiveHacker
 
-### Connect
+### 4. Connect
 1. Find Wi-Fi: **hivehackerXXXX** (unique per device)
 2. Password: **hivehak!**
 3. Dashboard auto-opens in your browser
@@ -169,18 +201,22 @@ sudo ./usb-update.sh /dev/sdX
 
 ---
 
+<p align="center">
+  <img src="docs/logo-small.png" alt="HiveHacker" width="48" align="center">
+</p>
+
 ## 📊 Technical Specs
 
 | Spec | Value |
 |------|-------|
 | Resolution | 1920x1080, 1280x720, 1640x922 |
 | Codecs | H.264 (High Profile), H.265/HEVC |
-| Bitrate | 4-20 Mbps (configurable, shown in Mbps) |
+| Bitrate | 4-20 Mbps (shown in Mbps, not raw numbers) |
 | Framerate | 24, 25, 30 fps |
 | Storage/hour | H.264: ~4.5 GB, HEVC: ~2.7 GB |
-| GPS | U-blox, 1Hz/10Hz, local timezone |
+| GPS | U-blox, 1Hz/10Hz, local timezone support |
 | IMU | 6-axis, 50Hz, 0.3-2.0G threshold |
-| LEDs | 3 (Power/GPS/REC) with individual GPIO control |
+| LEDs | 3 (Power/GPS/REC) with individual GPIO control + toggles |
 | Wi-Fi | BCM43455, unique SSID per device |
 | SSH | Auto-generated password + key auth |
 | Boot time | <15 seconds |
@@ -191,6 +227,10 @@ sudo ./usb-update.sh /dev/sdX
 
 ---
 
+<p align="center">
+  <img src="docs/logo-small.png" alt="HiveHacker" width="48" align="center">
+</p>
+
 ## 📦 Install Methods
 
 | Method | Disassembly? | Reversible? | Recommended? |
@@ -199,7 +239,7 @@ sudo ./usb-update.sh /dev/sdX
 | SD card boot | Yes (jumper) | Yes (remove card) | For testing |
 | eMMC flash (rpiboot) | Yes (button) | Yes (with backup) | Permanent |
 
-Build once, flash unlimited devices. Each gets its own unique Wi-Fi SSID.
+Build once, flash unlimited devices. Each gets its own unique Wi-Fi + SSH password.
 
 ---
 
@@ -207,10 +247,10 @@ Build once, flash unlimited devices. Each gets its own unique Wi-Fi SSID.
 
 | Phase | Status | Features |
 |-------|--------|----------|
-| Phase 1 — Core | ✅ Current | H.264, loop, G-sensor, parking, web UI, captive portal, LED control, SMTP email |
+| Phase 1 — Core | ✅ Current | H.264, loop, G-sensor, parking, web UI, captive portal, LED control, SMTP email, USB management |
 | Phase 2 — Polish | 🔄 Planned | GPS OSD overlay, video thumbnails, firmware update via web |
-| Phase 3 — Advanced | 📋 Future | ADAS, RTSP streaming, WebRTC preview |
-| Phase 4 — Ecosystem | 📋 Future | Dual-camera, plugins, home automation |
+| Phase 3 — Advanced | 📋 Future | ADAS (lane departure, collision warning), RTSP streaming, WebRTC preview |
+| Phase 4 — Ecosystem | 📋 Future | Dual-camera support, plugin system, home automation integration |
 
 ---
 
@@ -226,13 +266,19 @@ Build once, flash unlimited devices. Each gets its own unique Wi-Fi SSID.
 
 **What if firmware doesn't boot?** A/B auto-rolls back after 10 failed boots.
 
+**Can I email recordings?** Yes. Configure SMTP in Settings, then use "Send" on any recording.
+
 ---
+
+<p align="center">
+  <img src="docs/logo-small.png" alt="HiveHacker" width="48" align="center">
+</p>
 
 ## 🤝 Community
 
-- 💬 [GitHub Discussions](https://github.com/eurisko2020/hivehacker/discussions)
-- 🐛 [GitHub Issues](https://github.com/eurisko2020/hivehacker/issues)
-- 🌍 [www.hivehacker.ca](https://www.hivehacker.ca)
+- 💬 [GitHub Discussions](https://github.com/eurisko2020/hivehacker/discussions) — questions and help
+- 🐛 [GitHub Issues](https://github.com/eurisko2020/hivehacker/issues) — bugs and feature requests
+- 🌍 [www.hivehacker.ca](https://www.hivehacker.ca) — documentation and guides
 
 ---
 
@@ -248,14 +294,20 @@ MIT License — see [LICENSE](LICENSE).
 
 ---
 
-<div align="center">
+<p align="center">
+  <img src="docs/logo-banner.png" alt="HiveHacker" width="300">
+</p>
 
-**🐝 HiveHacker** — *Your Hardware. Your Firmware. Your Dashcam.*
+<h3 align="center">🐝 Your Hardware. Your Firmware. Your Dashcam.</h3>
 
-*"Stop mining. Start recording."*
+<p align="center"><i>"Stop mining. Start recording."</i></p>
 
-🌍 [www.hivehacker.ca](https://www.hivehacker.ca) · 💻 [GitHub](https://github.com/eurisko2020/hivehacker)
+<p align="center">
+  🌍 <a href="https://www.hivehacker.ca"><b>www.hivehacker.ca</b></a> · 
+  💻 <a href="https://github.com/eurisko2020/hivehacker"><b>GitHub</b></a>
+</p>
 
-*HiveHacker is an independent open-source project by Eurisko2020 and is not affiliated with or endorsed by Hivemapper.*
-
-</div>
+<p align="center">
+  <i>HiveHacker is an independent open-source project by Eurisko2020<br>
+  and is not affiliated with or endorsed by Hivemapper.</i>
+</p>
