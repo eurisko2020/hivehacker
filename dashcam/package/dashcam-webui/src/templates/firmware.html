@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HiveHacker — Firmware Update</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<nav class="navbar">
+    <a href="/dashboard" class="nav-brand"><img src="/static/logo.png" alt="HiveHacker"><span class="nav-brand-text">HiveHacker</span></a>
+    <div class="nav-links">
+        <a href="/dashboard">Live</a>
+        <a href="/recordings">Recordings</a>
+        <a href="/events">Events</a>
+        <a href="/settings">Settings</a>
+        <a href="/firmware" class="active">Update</a>
+        <button class="theme-toggle" onclick="toggleTheme()"></button>
+    </div>
+</nav>
+<div class="container">
+    <h2 style="color:var(--primary);margin-bottom:1rem;">Firmware Update</h2>
+    
+    <fieldset>
+        <legend>Update via Browser</legend>
+        <p style="margin-bottom:1rem;color:var(--text-secondary);">Upload a HiveHacker .raucb firmware file to update this device.</p>
+        <div class="upload-area">
+            <form id="upload-form" enctype="multipart/form-data">
+                <label class="upload-label" for="firmware-file">Choose .raucb file...</label>
+                <input type="file" id="firmware-file" name="file" accept=".raucb">
+                <p id="upload-status" style="margin-top:0.5rem;color:var(--text-secondary);"></p>
+                <button type="submit" class="btn btn-primary" style="margin-top:1rem;">Install Update</button>
+            </form>
+        </div>
+    </fieldset>
+
+    <fieldset>
+        <legend>Update via USB Stick</legend>
+        <p style="color:var(--text-secondary);">No computer needed — update from a USB stick:</p>
+        <ol style="margin-left:2rem;margin-top:0.5rem;color:var(--text-secondary);line-height:1.8;">
+            <li>Download the <code>.raucb</code> file from <a href="https://hivehacker.ca">hivehacker.ca</a></li>
+            <li>Copy it to a FAT32 USB stick in a folder called <code>hivemapper_update/</code></li>
+            <li>Power OFF this dashcam</li>
+            <li>Insert the USB stick</li>
+            <li>Power ON — update installs automatically in 2-3 minutes</li>
+        </ol>
+    </fieldset>
+
+    <fieldset>
+        <legend>System Info</legend>
+        <div class="form-row"><label>Firmware Version</label><span>HiveHacker v1.0</span></div>
+        <div class="form-row"><label>Build Date</label><span>2026-06-20</span></div>
+        <div class="form-row"><label>Kernel</label><span>5.10.76-v8</span></div>
+        <div class="form-row"><label>Device Serial</label><span>58CC</span></div>
+    </fieldset>
+
+    <fieldset>
+        <legend>System Controls</legend>
+        <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
+            <button class="btn btn-warning" onclick="if(confirm('Reboot?')) apiPost('/api/system/reboot')">Reboot</button>
+            <button class="btn btn-danger" onclick="if(confirm('Shutdown?')) apiPost('/api/system/shutdown')">Shutdown</button>
+            <button class="btn" onclick="if(confirm('Factory reset? This deletes all recordings!')) apiPost('/api/system/factory-reset')">Factory Reset</button>
+        </div>
+    </fieldset>
+</div>
+<div class="footer">Powered by <a href="https://hivehacker.ca">HiveHacker</a> | By Eurisko2020</div>
+<script src="/static/app.js"></script>
+<script>
+document.getElementById('upload-form').onsubmit = async function(e) {
+    e.preventDefault();
+    const file = document.getElementById('firmware-file').files[0];
+    if (!file) { alert('Choose a file first'); return; }
+    document.getElementById('upload-status').textContent = 'Uploading ' + file.name + '...';
+    const fd = new FormData();
+    fd.append('file', file);
+    const res = await fetch('/api/firmware/upload', { method: 'POST', body: fd });
+    const data = await res.json();
+    document.getElementById('upload-status').textContent = 'Received: ' + data.filename + ' — installing...';
+    alert('Firmware received! Device will reboot after installation.');
+};
+</script>
+</body>
+</html>

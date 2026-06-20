@@ -1,82 +1,132 @@
-{% extends "base.html" %}
-{% block title %}Dashboard - Dashcam{% endblock %}
-{% block content %}
-<div class="dashboard">
-    <div class="status-card">
-        <h2>System Status</h2>
-        <div class="status-badge" id="mode-badge">{{ status.mode }}</div>
-        <div class="status-grid">
-            <div class="status-item">
-                <span class="label">Recording</span>
-                <span class="value" id="recording-state">{{ 'Active' if status.recording else 'Stopped' }}</span>
-            </div>
-            <div class="status-item">
-                <span class="label">CPU Temp</span>
-                <span class="value" id="cpu-temp">{{ status.cpu_temp }}&deg;C</span>
-            </div>
-            <div class="status-item">
-                <span class="label">Uptime</span>
-                <span class="value" id="uptime">{{ (status.uptime_seconds // 3600) }}h {{ ((status.uptime_seconds % 3600) // 60) }}m</span>
-            </div>
-            <div class="status-item">
-                <span class="label">Wi-Fi Clients</span>
-                <span class="value" id="wifi-clients">{{ status.wifi_clients }}</span>
-            </div>
-        </div>
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HiveHacker — Live View</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<nav class="navbar">
+    <a href="/dashboard" class="nav-brand"><img src="/static/logo.png" alt="HiveHacker"><span class="nav-brand-text">HiveHacker</span></a>
+    <div class="nav-links">
+        <a href="/dashboard" class="active">Live</a>
+        <a href="/recordings">Recordings</a>
+        <a href="/events">Events</a>
+        <a href="/settings">Settings</a>
+        <a href="/firmware">Update</a>
+        <button class="theme-toggle" onclick="toggleTheme()"></button>
     </div>
+</nav>
 
-    <div class="storage-card">
-        <h2>Storage</h2>
-        <div class="storage-bar-container">
-            <div class="storage-bar" style="width: {{ status.storage.percentage }}%"></div>
+<div class="container">
+    <!-- LIVE VIDEO -->
+    <div class="live-view">
+        <img src="/static/logo.png" class="live-video" id="live-feed" style="opacity:0.15;" alt="Camera feed loading...">
+        <div class="live-overlay">
+            <span class="live-badge" id="mode-badge">RECORDING</span>
+            <span class="live-badge storage" id="storage-badge">13.5 GB free</span>
         </div>
-        <div class="storage-info">
-            <span>{{ status.storage.used_gb }} GB / {{ status.storage.total_gb }} GB ({{ status.storage.percentage }}%)</span>
-        </div>
-        <div class="storage-details">
-            <span>Recordings: {{ status.recordings_count }}</span>
-            <span>Locked: {{ status.locked_count }}</span>
-        </div>
-    </div>
-
-    <div class="gps-card">
-        <h2>GPS</h2>
-        <div class="status-grid">
-            <div class="status-item">
-                <span class="label">Fix</span>
-                <span class="value">{{ 'Yes' if status.gps.fix else 'No' }}</span>
-            </div>
-            <div class="status-item">
-                <span class="label">Satellites</span>
-                <span class="value">{{ status.gps.sats }}</span>
-            </div>
-            <div class="status-item">
-                <span class="label">Speed</span>
-                <span class="value">{{ status.gps.speed }} km/h</span>
-            </div>
+        <div class="rec-indicator">
+            <span class="rec-dot"></span><span>REC</span><span class="rec-timer" id="rec-timer">00:15:32</span>
         </div>
     </div>
 
     <div class="quick-actions">
-        <h2>Quick Actions</h2>
-        <button onclick="apiPost('/api/system/reboot')" class="btn btn-warning">Reboot</button>
-        <button onclick="apiPost('/api/system/shutdown')" class="btn btn-danger">Shutdown</button>
+        <a href="/recordings" class="quick-btn primary">Recordings</a>
+        <a href="/stream" class="quick-btn">Full Screen</a>
+        <button class="quick-btn" onclick="lockCurrent()">Lock Current</button>
+    </div>
+
+    <!-- DUAL STORAGE -->
+    <div class="storage-section">
+        <h3>Storage</h3>
+        <div class="storage-device">
+            <div>
+                <span class="name">📱 Device (eMMC)</span><br>
+                <span class="info">18.5 GB used / 32 GB · 15 recordings</span>
+            </div>
+            <span class="info" style="text-align:right;">~3h left</span>
+        </div>
+        <div class="storage-bar-container"><div class="storage-bar" style="width:57.8%"></div></div>
+
+        <div class="storage-device" style="margin-top:0.6rem;">
+            <div>
+                <span class="name">🔌 External USB</span><br>
+                <span class="info" id="usb-storage-info">64 GB used / 128 GB · 42 recordings</span>
+            </div>
+            <span class="info" style="text-align:right;">~14h left</span>
+        </div>
+        <div class="storage-bar-container"><div class="storage-bar" style="width:50%"></div></div>
+    </div>
+
+    <!-- STATUS CARDS -->
+    <div class="status-grid">
+        <div class="status-card">
+            <div class="label">Mode</div>
+            <div class="value" id="status-mode">RECORDING</div>
+        </div>
+        <div class="status-card">
+            <div class="label">GPS</div>
+            <div class="value" id="status-gps">8 sats</div>
+            <div class="sub" id="status-speed">0 km/h</div>
+        </div>
+        <div class="status-card">
+            <div class="label">Temp</div>
+            <div class="value" id="status-temp">42°C</div>
+        </div>
+        <div class="status-card">
+            <div class="label">Uptime</div>
+            <div class="value" id="status-uptime">15m</div>
+        </div>
+        <div class="status-card">
+            <div class="label">Time</div>
+            <div class="value" id="status-time" style="font-size:0.9rem;">--:--</div>
+            <div class="sub" id="status-tz">Local</div>
+        </div>
+        <div class="status-card">
+            <div class="label">Locked</div>
+            <div class="value" id="status-locked">3</div>
+        </div>
     </div>
 </div>
-{% endblock %}
-{% block scripts %}
+
+<div class="footer">
+    Powered by <a href="https://hivehacker.ca">HiveHacker</a> | By Eurisko2020
+    <button class="footer-about" onclick="document.getElementById('about-modal').classList.add('active')">About</button>
+</div>
+
+<div class="modal-overlay" id="about-modal">
+    <div class="modal">
+        <h2><img src="/static/logo.png" style="width:32px;height:32px;vertical-align:middle;"> HiveHacker</h2>
+        <p>Open-source dashcam firmware for the Hivemapper HDC.</p>
+        <p>H.264 hardware encoding, loop recording, G-sensor, parking mode.</p>
+        <p style="margin-top:0.5rem;"><a href="https://hivehacker.ca">hivehacker.ca</a> | <a href="https://github.com/eurisko2020/hivehacker">GitHub</a></p>
+        <p style="font-size:0.75rem;color:var(--text-secondary);">Code by Eurisko2020 | MIT License</p>
+        <button class="modal-close" onclick="document.getElementById('about-modal').classList.remove('active')">Close</button>
+    </div>
+</div>
+
+<script src="/static/app.js"></script>
 <script>
-// Auto-refresh status every 5 seconds
 setInterval(async () => {
     try {
         const res = await fetch('/api/status');
-        const data = await res.json();
-        document.getElementById('cpu-temp').textContent = data.cpu_temp + '\u00b0C';
-        document.getElementById('wifi-clients').textContent = data.wifi_clients;
-        const upH = Math.floor(data.uptime_seconds / 3600);
-        const upM = Math.floor((data.uptime_seconds % 3600) / 60);
-        document.getElementById('uptime').textContent = upH + 'h ' + upM + 'm';
-    } catch (e) {}
-}, 5000);
+        const d = await res.json();
+        document.getElementById('rec-timer').textContent = d.recording_time;
+        document.getElementById('mode-badge').textContent = d.mode;
+        document.getElementById('storage-badge').textContent = d.storage.free_gb + ' GB free';
+        document.getElementById('status-mode').textContent = d.mode;
+        document.getElementById('status-gps').textContent = d.gps.sats + ' sats';
+        document.getElementById('status-speed').textContent = d.gps.speed + ' km/h';
+        document.getElementById('status-temp').textContent = d.cpu_temp + '°C';
+        document.getElementById('status-locked').textContent = d.locked_count;
+        const h = Math.floor(d.uptime_seconds/3600), m = Math.floor((d.uptime_seconds%3600)/60);
+        document.getElementById('status-uptime').textContent = h>0 ? h+'h '+m+'m' : m+'m';
+    } catch(e) {}
+}, 3000);
+
+function lockCurrent() { apiPost('/api/recordings/lock-current'); alert('Current segment locked!'); }
 </script>
-{% endblock %}
+</body>
+</html>

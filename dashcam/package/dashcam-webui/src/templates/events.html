@@ -1,32 +1,36 @@
-{% extends "base.html" %}
-{% block title %}Events - Dashcam{% endblock %}
-{% block content %}
-<div class="events">
-    <h2>Events Log ({{ events|length }})</h2>
-    <a href="/api/events/export" class="btn">Export CSV</a>
-    <table class="events-table">
-        <thead>
-            <tr>
-                <th>Timestamp</th>
-                <th>Type</th>
-                <th>G-Force</th>
-                <th>Segment</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for e in events %}
-            <tr>
-                <td>{{ e.timestamp }}</td>
-                <td>{{ e.type }}</td>
-                <td>{{ e.g_force }}G</td>
-                <td>
-                    {% if e.segment %}
-                    <a href="/api/recordings/{{ e.segment }}.mp4">{{ e.segment }}</a>
-                    {% endif %}
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HiveHacker — Events</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<nav class="navbar">
+    <a href="/dashboard" class="nav-brand"><img src="/static/logo.png" alt="HiveHacker"><span class="nav-brand-text">HiveHacker</span></a>
+    <div class="nav-links">
+        <a href="/dashboard">Live</a>
+        <a href="/recordings">Recordings</a>
+        <a href="/events" class="active">Events</a>
+        <a href="/settings">Settings</a>
+        <a href="/firmware">Update</a>
+        <button class="theme-toggle" onclick="toggleTheme()"></button>
+    </div>
+</nav>
+<div class="container">
+    <h2 style="color:var(--primary);margin-bottom:1rem;">Events Log ({{ events|length }})</h2>
+    <a href="/api/events/export" class="btn btn-primary" style="margin-bottom:1rem;">Export CSV</a>
+    {% for e in events %}
+    <div class="event-item">
+        <span class="event-time">{{ e.timestamp }}</span>
+        <span class="event-gforce">{{ e.g_force }}G</span>
+        <span class="event-type"> — {{ e.type }}</span>
+        {% if e.segment %}<br><a href="/recordings" style="color:var(--primary);font-size:0.85rem;">→ {{ e.segment }}</a>{% endif %}
+    </div>
+    {% endfor %}
 </div>
-{% endblock %}
+<div class="footer">Powered by <a href="https://hivehacker.ca">HiveHacker</a> | By Eurisko2020</div>
+<script src="/static/app.js"></script>
+</body>
+</html>

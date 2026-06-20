@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HiveHacker — Welcome</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="splash-container">
+        <img src="/static/logo.png" alt="HiveHacker" class="splash-logo">
+        <h1 class="splash-title">HiveHacker</h1>
+        <p class="splash-subtitle">Your Dashcam. Your Firmware. Your Rules.</p>
+
+        <div class="splash-device">
+            <span class="label">Connected to</span><br>
+            <span class="value">{{ ssid }}</span>
+        </div>
+
+        {% if password_set %}
+        <form id="login-form" onsubmit="return doLogin(event)" style="width:100%;max-width:300px;">
+            <input type="password" id="login-password" placeholder="Enter password"
+                   style="width:100%;padding:0.7rem;border-radius:6px;border:1px solid var(--border);margin-bottom:0.75rem;font-size:1rem;background:var(--card-bg);color:var(--text);box-sizing:border-box;" autofocus>
+            <button type="submit" class="splash-btn" style="width:100%;">Enter Dashboard</button>
+        </form>
+        {% else %}
+        <a href="/dashboard" class="splash-btn">Enter Live View</a>
+        {% endif %}
+
+        <div class="splash-footer">
+            <p>Powered by <a href="https://hivehacker.ca" style="color:var(--primary);text-decoration:none;">HiveHacker</a> | By Eurisko2020</p>
+        </div>
+    </div>
+    <script>
+        async function doLogin(e) {
+            e.preventDefault();
+            const pw = document.getElementById('login-password').value;
+            const res = await fetch('/api/auth/login', {
+                method: 'POST', headers: {'Content-Type':'application/json'},
+                body: JSON.stringify({password: pw})
+            });
+            const data = await res.json();
+            if (data.success) window.location.href = '/dashboard';
+            else alert('Incorrect password');
+            return false;
+        }
+    </script>
+</body>
+</html>

@@ -1,114 +1,224 @@
-{% extends "base.html" %}
-{% block title %}Settings - Dashcam{% endblock %}
-{% block content %}
-<div class="settings">
-    <h2>Settings</h2>
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HiveHacker — Settings</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<nav class="navbar">
+    <a href="/dashboard" class="nav-brand"><img src="/static/logo.png" alt="HiveHacker"><span class="nav-brand-text">HiveHacker</span></a>
+    <div class="nav-links">
+        <a href="/dashboard">Live</a>
+        <a href="/recordings">Recordings</a>
+        <a href="/events">Events</a>
+        <a href="/settings" class="active">Settings</a>
+        <a href="/firmware">Update</a>
+        <button class="theme-toggle" onclick="toggleTheme()"></button>
+    </div>
+</nav>
+<div class="container">
+    <h2 style="color:var(--primary);margin-bottom:0.75rem;">Settings</h2>
     <form id="settings-form" onsubmit="saveSettings(event)">
 
-        <fieldset>
-            <legend>Video / Recording</legend>
-            <div class="form-row">
-                <label>Resolution</label>
-                <select name="camera.width" data-section="camera">
-                    <option value="1920" {% if config.camera.width == '1920' %}selected{% endif %}>1920x1080</option>
-                    <option value="1280" {% if config.camera.width == '1280' %}selected{% endif %}>1280x720</option>
-                </select>
-                <input type="hidden" name="camera.height" value="1080">
-            </div>
-            <div class="form-row">
-                <label>Codec</label>
-                <select name="camera.codec" data-section="camera">
-                    <option value="h264" {% if config.camera.codec == 'h264' %}selected{% endif %}>H.264</option>
-                    <option value="h265" {% if config.camera.codec == 'h265' %}selected{% endif %}>H.265 (HEVC)</option>
+        <fieldset><legend>Video / Recording</legend>
+            <div class="form-row"><label>Resolution</label>
+                <select name="camera.resolution">
+                    <option value="1080p" selected>1920×1080 (1080p)</option>
+                    <option value="720p">1280×720 (720p)</option>
+                    <option value="1640">1640×922</option>
                 </select>
             </div>
-            <div class="form-row">
-                <label>Bitrate (Mbps)</label>
-                <input type="number" name="camera.bitrate" data-section="camera"
-                       value="{{ config.camera.bitrate }}" min="4000000" max="20000000" step="1000000">
-            </div>
-            <div class="form-row">
-                <label>Framerate</label>
-                <select name="camera.framerate" data-section="camera">
-                    <option value="30" {% if config.camera.framerate == '30' %}selected{% endif %}>30 fps</option>
-                    <option value="25" {% if config.camera.framerate == '25' %}selected{% endif %}>25 fps</option>
-                    <option value="24" {% if config.camera.framerate == '24' %}selected{% endif %}>24 fps</option>
+            <div class="form-row"><label>Codec</label>
+                <select name="camera.codec">
+                    <option value="h264" selected>H.264 (compatible)</option>
+                    <option value="h265">H.265 HEVC (smaller files)</option>
                 </select>
             </div>
-            <div class="form-row">
-                <label>Segment Length (seconds)</label>
-                <input type="range" name="camera.segment_duration" data-section="camera"
-                       value="{{ config.camera.segment_duration }}" min="60" max="600" step="60"
-                       oninput="this.nextElementSibling.textContent = this.value + 's'">
-                <span>{{ config.camera.segment_duration }}s</span>
+            <div class="form-row"><label>Bitrate (Mbps)</label>
+                <input type="range" name="camera.bitrate_mbps" value="10" min="4" max="20" step="1"
+                       oninput="this.nextElementSibling.textContent=this.value+' Mbps'">
+                <span>10 Mbps</span>
+            </div>
+            <div class="form-row"><label>Framerate</label>
+                <select name="camera.framerate">
+                    <option value="30" selected>30 fps</option>
+                    <option value="25">25 fps</option>
+                    <option value="24">24 fps</option>
+                </select>
+            </div>
+            <div class="form-row"><label>Segment Length</label>
+                <input type="range" name="camera.segment_duration" value="180" min="60" max="600" step="60"
+                       oninput="this.nextElementSibling.textContent=(this.value/60)+' min'">
+                <span>3 min</span>
             </div>
         </fieldset>
 
-        <fieldset>
-            <legend>Storage</legend>
-            <div class="form-row">
-                <label>Max Usage (%)</label>
-                <input type="range" name="storage.max_usage" data-section="storage"
-                       value="{{ config.storage.max_usage }}" min="70" max="95"
-                       oninput="this.nextElementSibling.textContent = this.value + '%'">
-                <span>{{ config.storage.max_usage }}%</span>
+        <fieldset><legend>Storage</legend>
+            <div class="form-row"><label>Recording Storage</label>
+                <select name="storage.device">
+                    <option value="emmc" selected>Device (eMMC)</option>
+                    <option value="usb">External USB</option>
+                    <option value="both">Both (USB overflow)</option>
+                </select>
+            </div>
+            <div class="form-row"><label>Max Usage</label>
+                <input type="range" name="storage.max_usage" value="85" min="70" max="95"
+                       oninput="this.nextElementSibling.textContent=this.value+'%'">
+                <span>85%</span>
+            </div>
+            <div class="form-row"><label>Locked File Retention</label>
+                <select name="storage.locked_retention">
+                    <option value="7">7 days</option>
+                    <option value="14">14 days</option>
+                    <option value="30" selected>30 days</option>
+                    <option value="90">90 days</option>
+                </select>
             </div>
         </fieldset>
 
-        <fieldset>
-            <legend>G-Sensor</legend>
-            <div class="form-row">
-                <label>Impact Threshold (G)</label>
-                <input type="range" name="imu.accel_threshold" data-section="imu"
-                       value="{{ config.imu.accel_threshold }}" min="0.3" max="2.0" step="0.1"
-                       oninput="this.nextElementSibling.textContent = this.value + 'G'">
-                <span>{{ config.imu.accel_threshold }}G</span>
+        <fieldset><legend>External USB Storage</legend>
+            <div class="usb-device">
+                <div class="usb-header">
+                    <span class="usb-name">🔌 USB Drive (128 GB)</span>
+                    <span class="usb-status connected">Connected</span>
+                </div>
+                <div class="info" style="font-size:0.8rem;color:var(--text-secondary);margin-bottom:0.4rem;">
+                    64 GB used · 64 GB free · ~14h recording time
+                </div>
+                <div class="storage-bar-container"><div class="storage-bar" style="width:50%"></div></div>
+                <div style="display:flex;gap:0.3rem;margin-top:0.5rem;">
+                    <button class="btn btn-small btn-warning" onclick="formatUSB()">Format USB</button>
+                    <button class="btn btn-small" onclick="ejectUSB()">Eject</button>
+                </div>
             </div>
-            <div class="form-row">
-                <button type="button" onclick="testEvent()" class="btn">Test Event</button>
+            <p style="font-size:0.75rem;color:var(--text-secondary);margin-top:0.5rem;">
+                Formatting erases all data on the USB drive. Recordings will be saved here if selected above.
+            </p>
+        </fieldset>
+
+        <fieldset><legend>G-Sensor / Impact</legend>
+            <div class="form-row"><label>Impact Sensitivity</label>
+                <select name="imu.sensitivity">
+                    <option value="0.3">High (0.3G — bumpy roads)</option>
+                    <option value="0.5">Medium-High (0.5G)</option>
+                    <option value="0.8" selected>Medium (0.8G — normal)</option>
+                    <option value="1.2">Low (1.2G — large impacts only)</option>
+                    <option value="2.0">Very Low (2.0G — severe only)</option>
+                </select>
             </div>
         </fieldset>
 
-        <fieldset>
-            <legend>Wi-Fi</legend>
-            <div class="form-row">
-                <label>SSID</label>
-                <input type="text" name="wifi.ssid" data-section="wifi"
-                       value="{{ config.wifi.ssid }}">
-            </div>
-            <div class="form-row">
-                <label>Password</label>
-                <input type="text" name="wifi.password" data-section="wifi"
-                       value="{{ config.wifi.password }}">
-            </div>
-            <div class="form-row">
-                <label>Channel</label>
-                <input type="number" name="wifi.channel" data-section="wifi"
-                       value="{{ config.wifi.channel }}" min="1" max="161">
+        <fieldset><legend>Parking Mode</legend>
+            <div class="form-row"><label>Entry Timeout</label>
+                <select name="parking.entry_timeout">
+                    <option value="60">1 minute</option>
+                    <option value="180">3 minutes</option>
+                    <option value="300" selected>5 minutes</option>
+                    <option value="600">10 minutes</option>
+                    <option value="1800">30 minutes</option>
+                </select>
             </div>
         </fieldset>
 
-        <fieldset>
-            <legend>Parking Mode</legend>
-            <div class="form-row">
-                <label>Entry Timeout (minutes)</label>
-                <input type="number" name="parking.entry_timeout" data-section="parking"
-                       value="{{ (config.parking.entry_timeout | int // 60) }}" min="1" max="30">
+        <fieldset><legend>GPS & Timezone</legend>
+            <div class="form-row"><label>Timezone</label>
+                <select name="gps.timezone">
+                    <option value="UTC">UTC</option>
+                    <option value="America/New_York" selected>Eastern (EST/EDT)</option>
+                    <option value="America/Chicago">Central (CST/CDT)</option>
+                    <option value="America/Denver">Mountain (MST/MDT)</option>
+                    <option value="America/Los_Angeles">Pacific (PST/PDT)</option>
+                    <option value="Europe/London">London (GMT/BST)</option>
+                    <option value="Europe/Paris">Paris (CET)</option>
+                    <option value="Asia/Tokyo">Tokyo (JST)</option>
+                    <option value="Australia/Sydney">Sydney (AEDT)</option>
+                </select>
+            </div>
+            <div class="form-row"><label>Speed Unit</label>
+                <select name="gps.speed_unit">
+                    <option value="kmh" selected>km/h</option>
+                    <option value="mph">mph</option>
+                </select>
+            </div>
+            <div class="form-row"><label>OSD Overlay</label>
+                <select name="gps.osd_overlay">
+                    <option value="false" selected>Off (clean video)</option>
+                    <option value="true">On (timestamp + speed + GPS)</option>
+                </select>
             </div>
         </fieldset>
 
-        <fieldset>
-            <legend>LED</legend>
-            <div class="form-row">
+        <fieldset><legend>LED Controls</legend>
+            <div class="toggle-row">
+                <span><span class="toggle-icon">💡</span><span class="toggle-label">Power LED</span></span>
+                <div class="toggle-switch active" onclick="toggleLED(this, 'power')"></div>
+            </div>
+            <div class="toggle-row">
+                <span><span class="toggle-icon">📡</span><span class="toggle-label">GPS LED</span></span>
+                <div class="toggle-switch active" onclick="toggleLED(this, 'gps')"></div>
+            </div>
+            <div class="toggle-row">
+                <span><span class="toggle-icon">🔴</span><span class="toggle-label">REC LED (blinks while recording)</span></span>
+                <div class="toggle-switch active" onclick="toggleLED(this, 'rec')"></div>
+            </div>
+            <div class="form-row" style="margin-top:0.5rem;">
                 <label>Brightness</label>
-                <input type="range" name="led.brightness" data-section="led"
-                       value="{{ config.led.brightness }}" min="0" max="255"
-                       oninput="this.nextElementSibling.textContent = this.value">
-                <span>{{ config.led.brightness }}</span>
+                <input type="range" name="led.brightness" value="255" min="0" max="255"
+                       oninput="this.nextElementSibling.textContent=this.value">
+                <span>255</span>
             </div>
         </fieldset>
 
-        <button type="submit" class="btn btn-primary">Save Settings</button>
+        <fieldset><legend>Wi-Fi</legend>
+            <div class="form-row"><label>SSID</label><input type="text" name="wifi.ssid" value="hivehacker58CC" readonly></div>
+            <div class="form-row"><label>Password</label><input type="text" name="wifi.password" value="hivehak!" readonly></div>
+            <p style="font-size:0.75rem;color:var(--text-secondary);">Wi-Fi SSID and password are auto-generated from device serial. To change, use SSH.</p>
+        </fieldset>
+
+        <fieldset><legend>Email / SMTP</legend>
+            <div class="toggle-row">
+                <span><span class="toggle-label">Enable Email Sending</span></span>
+                <div class="toggle-switch" onclick="toggleEmail(this)"></div>
+            </div>
+            <div id="email-settings" style="display:none;">
+                <div class="form-row"><label>SMTP Server</label><input type="text" name="email.smtp_server" value="smtp.gmail.com" placeholder="smtp.gmail.com"></div>
+                <div class="form-row"><label>SMTP Port</label><input type="number" name="email.smtp_port" value="587"></div>
+                <div class="form-row"><label>Username</label><input type="text" name="email.smtp_user" placeholder="your@gmail.com"></div>
+                <div class="form-row"><label>App Password</label><input type="password" name="email.smtp_password" placeholder="Gmail app password"></div>
+                <div class="form-row"><label>From Email</label><input type="email" name="email.from_email" placeholder="from@example.com"></div>
+            </div>
+        </fieldset>
+
+        <button type="submit" class="btn btn-primary" style="font-size:0.95rem;padding:0.6rem 2rem;margin-top:0.75rem;">Save Settings</button>
     </form>
 </div>
-{% endblock %}
+<div class="footer">Powered by <a href="https://hivehacker.ca">HiveHacker</a> | By Eurisko2020</div>
+<script src="/static/app.js"></script>
+<script>
+function toggleLED(el, name) {
+    el.classList.toggle('active');
+    const on = el.classList.contains('active');
+    apiPost('/api/settings', {led: {[name+'_enabled']: on}});
+}
+
+function toggleEmail(el) {
+    el.classList.toggle('active');
+    document.getElementById('email-settings').style.display = el.classList.contains('active') ? 'block' : 'none';
+}
+
+function formatUSB() {
+    if (confirm('Format USB drive? ALL DATA WILL BE ERASED!')) {
+        apiPost('/api/system/format-usb').then(r => alert('USB formatted!'));
+    }
+}
+
+function ejectUSB() {
+    if (confirm('Safely eject USB drive?')) {
+        apiPost('/api/system/eject-usb').then(r => alert('USB ejected. Safe to remove.'));
+    }
+}
+</script>
+</body>
+</html>

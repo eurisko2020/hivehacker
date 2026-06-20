@@ -1,75 +1,133 @@
-{% extends "base.html" %}
-{% block title %}Recordings - Dashcam{% endblock %}
-{% block content %}
-<div class="recordings">
-    <h2>Recordings ({{ files|length }})</h2>
-
-    <div class="filter-tabs">
-        <button class="tab active" onclick="filterRecordings('all')">All</button>
-        <button class="tab" onclick="filterRecordings('locked')">Locked</button>
-        <button class="tab" onclick="filterRecordings('unlocked')">Unlocked</button>
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HiveHacker — Recordings</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<nav class="navbar">
+    <a href="/dashboard" class="nav-brand"><img src="/static/logo.png" alt="HiveHacker"><span class="nav-brand-text">HiveHacker</span></a>
+    <div class="nav-links">
+        <a href="/dashboard">Live</a>
+        <a href="/recordings" class="active">Recordings</a>
+        <a href="/events">Events</a>
+        <a href="/settings">Settings</a>
+        <a href="/firmware">Update</a>
+        <button class="theme-toggle" onclick="toggleTheme()"></button>
     </div>
+</nav>
 
-    <table class="recordings-table">
-        <thead>
-            <tr>
-                <th>Filename</th>
-                <th>Date</th>
-                <th>Duration</th>
-                <th>Size</th>
-                <th>Status</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody id="recordings-body">
-            {% for f in files %}
-            <tr data-locked="{{ f.locked }}">
-                <td>{{ f.name }}</td>
-                <td>{{ f.date }}</td>
-                <td>{{ f.duration }}s</td>
-                <td>{{ f.size_mb }} MB</td>
-                <td>{{ 'LOCKED' if f.locked else 'Normal' }}</td>
-                <td class="actions">
-                    <a href="/api/recordings/{{ f.name }}" class="btn btn-small">Download</a>
-                    {% if f.locked %}
-                    <button onclick="unlockFile('{{ f.name }}')" class="btn btn-small">Unlock</button>
-                    {% else %}
-                    <button onclick="lockFile('{{ f.name }}')" class="btn btn-small">Lock</button>
-                    <button onclick="deleteFile('{{ f.name }}')" class="btn btn-small btn-danger">Delete</button>
-                    {% endif %}
-                    {% if f.has_meta %}
-                    <a href="/api/recordings/{{ f.name }}/meta" class="btn btn-small">Meta</a>
-                    {% endif %}
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+<div class="container">
+    <h2 style="color:var(--primary);margin-bottom:1rem;">Recordings ({{ files|length }})</h2>
+    <div class="filter-tabs">
+        <button class="tab active" onclick="filterRecordings('all', this)">All</button>
+        <button class="tab" onclick="filterRecordings('today', this)">Today</button>
+        <button class="tab" onclick="filterRecordings('locked', this)">Locked</button>
+        <button class="tab" onclick="filterRecordings('events', this)">Events</button>
+    </div>
+    <div class="recordings-list" id="recordings-list">
+        {% for f in files %}
+        <div class="recording-item {{ 'locked' if f.locked }}" data-locked="{{ f.locked }}">
+            <div class="recording-thumb">▶</div>
+            <div class="recording-info">
+                <div class="name">{{ f.name }} {{ '🔒' if f.locked }}</div>
+                <div class="meta">{{ f.date }} · {{ f.duration }}s · {{ f.size_mb }} MB</div>
+            </div>
+            <div class="recording-actions">
+                <button class="btn btn-small btn-primary" onclick="playRecording('{{ f.name }}')">Play</button>
+                <button class="btn btn-small btn-success" onclick="sendRecording('{{ f.name }}')">Send</button>
+                <a href="/api/recordings/{{ f.name }}" class="btn btn-small" download>Download</a>
+                {% if f.locked %}
+                <button class="btn btn-small" onclick="unlockFile('{{ f.name }}')">Unlock</button>
+                {% else %}
+                <button class="btn btn-small" onclick="lockFile('{{ f.name }}')">Lock</button>
+                <button class="btn btn-small btn-danger" onclick="deleteFile('{{ f.name }}')">Delete</button>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
 </div>
-{% endblock %}
-{% block scripts %}
+
+<div class="footer">Powered by <a href="https://hivehacker.ca">HiveHacker</a> | By Eurisko2020</div>
+
+<!-- Video player modal -->
+<div class="modal-overlay" id="video-modal">
+    <div class="modal video-modal" style="max-width:600px;">
+        <h2 id="video-title">Playback</h2>
+        <video controls id="video-player" style="width:100%;border-radius:8px;background:#000;"></video>
+        <div style="display:flex;gap:0.5rem;">
+            <button class="btn btn-success" onclick="sendFromModal()">Send This Video</button>
+            <button class="modal-close" style="flex:1;" onclick="closeModal('video-modal')">Close</button>
+        </div>
+    </div>
+</div>
+
+<!-- Email/send modal -->
+<div class="modal-overlay" id="email-modal">
+    <div class="modal email-modal">
+        <h2>Send Video</h2>
+        <p style="margin-bottom:0.75rem;color:var(--text-secondary);">Send <strong id="email-filename">recording.mp4</strong> to:</p>
+        <input type="email" id="email-to" placeholder="recipient@example.com">
+        <input type="text" id="email-subject" placeholder="Subject" value="HiveHacker Dashcam Footage">
+        <textarea id="email-body" rows="3" placeholder="Message">Attached is dashcam footage from my HiveHacker device.</textarea>
+        <div style="display:flex;gap:0.5rem;">
+            <button class="btn btn-primary" onclick="sendEmail()" style="flex:1;">Send</button>
+            <button class="modal-close" onclick="closeModal('email-modal')">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<script src="/static/app.js"></script>
 <script>
-function filterRecordings(type) {
+let currentRecording = '';
+
+function filterRecordings(type, btn) {
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-    event.target.classList.add('active');
-    // Reload with filter
-    window.location.href = '/recordings?filter=' + type;
+    btn.classList.add('active');
+    // In real version, this would fetch filtered results
 }
 
-async function lockFile(name) {
-    await apiPost('/api/recordings/' + name + '/lock');
-    location.reload();
+function playRecording(name) {
+    currentRecording = name;
+    document.getElementById('video-title').textContent = name;
+    document.getElementById('video-player').src = '/api/recordings/' + name;
+    document.getElementById('video-modal').classList.add('active');
 }
 
-async function unlockFile(name) {
-    await apiPost('/api/recordings/' + name + '/unlock');
-    location.reload();
+function sendRecording(name) {
+    currentRecording = name;
+    document.getElementById('email-filename').textContent = name;
+    document.getElementById('email-modal').classList.add('active');
 }
 
-async function deleteFile(name) {
-    if (!confirm('Delete ' + name + '?')) return;
-    await apiDelete('/api/recordings/' + name);
-    location.reload();
+function sendFromModal() {
+    closeModal('video-modal');
+    sendRecording(currentRecording);
 }
+
+async function sendEmail() {
+    const to = document.getElementById('email-to').value;
+    const subject = document.getElementById('email-subject').value;
+    const body = document.getElementById('email-body').value;
+    const res = await fetch('/api/recordings/' + currentRecording + '/email', {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({to, subject, body})
+    });
+    const data = await res.json();
+    if (data.status === 'sent') {
+        alert('Video sent to ' + to + '!');
+        closeModal('email-modal');
+    } else {
+        alert('Failed to send: ' + (data.error || 'unknown error'));
+    }
+}
+
+async function lockFile(name) { await apiPost('/api/recordings/' + name + '/lock'); location.reload(); }
+async function unlockFile(name) { await apiPost('/api/recordings/' + name + '/unlock'); location.reload(); }
+async function deleteFile(name) { if(confirm('Delete ' + name + '?')) { await apiDelete('/api/recordings/' + name); location.reload(); } }
 </script>
-{% endblock %}
+</body>
+</html>

@@ -1,20 +1,14 @@
 #!/bin/sh
 #
-# generate-ssid.sh — Generate unique Wi-Fi SSID from device serial number
+# generate-ssid.sh — Generate unique Wi-Fi SSID and SSH password from device serial
 #
-# Creates SSID: hivehackerXXXX (last 4 of CPU serial)
-# Password: hivehak!
-#
-# This runs at boot before hostapd starts, rewriting /etc/hostapd.conf
-# (or the overlay copy) with the device-specific SSID.
+# Wi-Fi SSID: hivehackerXXXX (last 4 hex of serial)
+# Wi-Fi password: hivehak!
+# SSH root password: hivehacksshXXXX (different from Wi-Fi password)
 #
 
 HOSTAPD_CONF="/etc/hostapd.conf"
-DASHCAM_CONF="/mnt/data/config/dashcamd.conf"
-DEFAULT_PASSWORD="hivehak!"
-
-# Read the CPU serial number
-# On BCM2711/CM4, this is available in /proc/cpuinfo or device tree
+DEFAULT_WIFI_PASSWORD=*** the CPU serial number
 SERIAL=""
 if [ -f /sys/firmware/devicetree/base/serial-number ]; then
     SERIAL=$(cat /sys/firmware/devicetree/base/serial-number | tr -d '\0')
@@ -35,33 +29,47 @@ fi
 # Extract last 4 characters of serial, uppercase
 SSID_SUFFIX=$(echo "$SERIAL" | tail -c 5 | tr 'a-f' 'A-F')
 SSID="hivehacker${SSID_SUFFIX}"
+SSH_PASSWORD="hivehackssh${SSID_SUFFIX}"
 
-echo "Generated SSID: $SSID (from serial: $SERIAL)"
+echo "Generated SSID: $SSID"
+echo "Generated SSH password: $SSH_PASSWORD"
+echo "Serial: $SERIAL"
 
-# Update hostapd.conf with the unique SSID and password
+# Update hostapd.conf with the unique SSID and Wi-Fi password
 if [ -f "$HOSTAPD_CONF" ]; then
-    # Check if this is a read-only rootfs (hostapd.conf is on overlay)
-    # We can write to it since overlayfs makes it writable
     sed -i "s/^ssid=.*/ssid=$SSID/" "$HOSTAPD_CONF"
-    sed -i "s/^wpa_passphrase=.*/wpa_passphrase=$DEFAULT_PASSWORD/" "$HOSTAPD_CONF"
+    sed -i "s/^wpa_passphrase=.*/wpa_passphrase=$DEFAULT_WIFI_PASSWORD/" "$HOSTAPD_CONF"
     echo "Updated $HOSTAPD_CONF with SSID=$SSID"
 else
     echo "WARNING: $HOSTAPD_CONF not found"
 fi
 
-# Also update dashcamd config so the web UI shows the correct SSID
-if [ -d /mnt/data/config ]; then
-    # Write a minimal override with just the wifi section
-    cat > /mnt/data/config/wifi_override.conf << EOF
+# Set the root password for SSH access
+# Using chpasswd to set the password non-interactively
+echo "root:${SSH_PASSWORD}" | chpasswd 2>/dev/null || {
+    # Fallback if chpasswd not available
+    echo "Setting password via passwd..."
+    passwd root << EOF
+${SSH_PASSWORD}
+${SSH_PASSWORD}
+EOF
+}
+echo "Root password set to: $SSH_PASSWORD"
+
+# Write generated values to files for the web UI to read
+mkdir -p /mnt/data/config
+echo "$SSID" > /mnt/data/config/generated_ssid.txt
+echo "$DEFAULT_WIFI_PASSWORD" > /mnt/data/config/generated_wifi_password.txt
+echo "$SSH_PASSWORD" > /mnt/data/config/generated_ssh_password.txt
+
+# Also update dashcamd config wifi section
+cat > /mnt/data/config/wifi_override.conf << EOF
 [wifi]
 ssid = $SSID
-password = $DEFAULT_PASSWORD
+password = $DEFAULT_WIFI_PASSWORD
+
+[ssh]
+password = $SSH_PASSWORD
 EOF
-    echo "Updated wifi override config"
-fi
 
-# Write the generated SSID to a file for the web UI to read
-echo "$SSID" > /mnt/data/config/generated_ssid.txt
-echo "$DEFAULT_PASSWORD" > /mnt/data/config/generated_password.txt
-
-echo "SSID generation complete."
+echo "Configuration generation complete."

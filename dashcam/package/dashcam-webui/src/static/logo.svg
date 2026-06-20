@@ -1,0 +1,84 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!-- HiveHacker Logo — Bee with Anonymous Mask, modern flat design -->
+  
+  <!-- Background: rounded hexagon -->
+  <polygon points="256,20 442,128 442,384 256,492 70,384 70,128" fill="#1a1a2e"/>
+  <polygon points="256,20 442,128 442,384 256,492 70,384 70,128" fill="none" stroke="#1877f2" stroke-width="4" opacity="0.5"/>
+  
+  <!-- Honeycomb pattern (subtle background) -->
+  <g fill="none" stroke="#1877f2" stroke-width="1.5" opacity="0.08">
+    <polygon points="256,80 300,105 300,155 256,180 212,155 212,105"/>
+    <polygon points="256,180 300,205 300,255 256,280 212,255 212,205"/>
+    <polygon points="196,130 240,155 240,205 196,230 152,205 152,155"/>
+    <polygon points="316,130 360,155 360,205 316,230 272,205 272,155"/>
+  </g>
+  
+  <!-- Bee wings (behind body, translucent) -->
+  <ellipse cx="190" cy="200" rx="55" ry="30" fill="#1877f2" opacity="0.25" transform="rotate(-30 190 200)"/>
+  <ellipse cx="322" cy="200" rx="55" ry="30" fill="#1877f2" opacity="0.25" transform="rotate(30 322 200)"/>
+  <ellipse cx="195" cy="195" rx="45" ry="22" fill="#1877f2" opacity="0.15" transform="rotate(-25 195 195)"/>
+  <ellipse cx="317" cy="195" rx="45" ry="22" fill="#1877f2" opacity="0.15" transform="rotate(25 317 195)"/>
+  
+  <!-- Bee body (rounded, golden) -->
+  <ellipse cx="256" cy="290" rx="70" ry="90" fill="#f5a623"/>
+  
+  <!-- Body stripes (dark) -->
+  <rect x="190" y="265" width="132" height="16" rx="8" fill="#1a1a2e" opacity="0.9"/>
+  <rect x="188" y="305" width="136" height="16" rx="8" fill="#1a1a2e" opacity="0.9"/>
+  <rect x="192" y="345" width="128" height="14" rx="7" fill="#1a1a2e" opacity="0.9"/>
+  
+  <!-- Bee head (golden, slightly larger) -->
+  <circle cx="256" cy="210" r="52" fill="#f5a623"/>
+  
+  <!-- Antennae -->
+  <path d="M 230 168 Q 215 140 205 125" stroke="#1a1a2e" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <path d="M 282 168 Q 297 140 307 125" stroke="#1a1a2e" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <circle cx="205" cy="125" r="5" fill="#1a1a2e"/>
+  <circle cx="307" cy="125" r="5" fill="#1a1a2e"/>
+  
+  <!-- ANONYMOUS MASK (white, covering bee face) -->
+  <!-- Mask shape: rounded rectangle with curved bottom -->
+  <path d="M 210 195 
+           Q 256 185 302 195
+           Q 310 210 302 230
+           Q 256 245 210 230
+           Q 202 210 210 195 Z" 
+        fill="#ffffff" stroke="#1a1a2e" stroke-width="1.5"/>
+  
+  <!-- Mask eyebrows (thick, angled) -->
+  <line x1="215" y1="206" x2="244" y2="202" stroke="#1a1a2e" stroke-width="4" stroke-linecap="round"/>
+  <line x1="268" y1="202" x2="297" y2="206" stroke="#1a1a2e" stroke-width="4" stroke-linecap="round"/>
+  
+  <!-- Mask eyes (almond shaped, black) -->
+  <path d="M 220 214 Q 232 210 244 214 Q 232 218 220 214 Z" fill="#1a1a2e"/>
+  <path d="M 268 214 Q 280 210 292 214 Q 280 218 268 214 Z" fill="#1a1a2e"/>
+  
+  <!-- Mask nose (subtle line) -->
+  <path d="M 252 218 L 256 226 L 260 218" fill="none" stroke="#1a1a2e" stroke-width="1.5" stroke-linecap="round"/>
+  
+  <!-- Mask mustache (classic anonymous style) -->
+  <path d="M 216 229 
+           Q 224 234 232 231 
+           L 244 232 
+           Q 250 236 256 234
+           Q 262 236 268 232
+           L 280 231
+           Q 288 234 296 229
+           Q 290 232 284 231
+           L 272 231
+           Q 266 234 256 233
+           Q 246 234 240 231
+           L 228 231
+           Q 222 232 216 229 Z" 
+        fill="#1a1a2e"/>
+  
+  <!-- Mask goatee -->
+  <path d="M 248 236 Q 256 246 264 236 Q 260 242 256 244 Q 252 242 248 236 Z" fill="#1a1a2e"/>
+  
+  <!-- HiveHacker text -->
+  <text x="256" y="430" text-anchor="middle" font-family="Arial Black, Arial, sans-serif" 
+        font-size="28" font-weight="900" fill="#1877f2" letter-spacing="2">HIVEHACKER</text>
+  
+  <!-- Small accent line under text -->
+  <rect x="200" y="440" width="112" height="2" fill="#f5a623" rx="1"/>
+</svg>

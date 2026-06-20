@@ -1,0 +1,3 @@
+# Dropbear configuration
+# Allow password authentication for initial setup
+DROPBEAR_EXTRA_ARGS="-R"
