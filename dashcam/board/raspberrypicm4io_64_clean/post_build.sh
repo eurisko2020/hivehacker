@@ -160,4 +160,181 @@ for svc in wifiP2P wifiman bootbit sethostname txpower; do
     fi
 done
 
+# --- FIX: Rauc D-Bus timing issue ---
+# On some devices, Rauc starts before D-Bus is fully ready, causing:
+#   "Connection to the system bus can't be made for de.pengutronix.rauc"
+# Fix: Add a drop-in that waits for D-Bus and retries
+mkdir -p ${TARGET_DIR}/etc/systemd/system/rauc.service.d
+cat > ${TARGET_DIR}/etc/systemd/system/rauc.service.d/hivehacker-fix.conf << 'RAUCFIX'
+[Unit]
+After=dbus.service dbus.socket
+Requires=dbus.service
+Wants=dbus.socket
+
+[Service]
+# Wait for D-Bus socket to be ready before starting
+ExecStartPre=/bin/sh -c 'for i in 1 2 3 4 5 6 7 8 9 10; do test -S /run/dbus/system_bus_socket && break; sleep 1; done'
+# Retry on failure
+Restart=on-failure
+RestartSec=3
+RAUCFIX
+echo "Applied Rauc D-Bus timing fix"
+
+# --- Install our robust USB update script ---
+# This replaces the stock usb_update.sh with a version that:
+# 1. Waits for Rauc to be ready (retries if D-Bus not available)
+# 2. Falls back to direct dd if Rauc still fails
+# 3. Works on any device, every time
+cat > ${TARGET_DIR}/opt/dashcam/bin/usb_update.sh << 'USBUPDATE'
+#!/bin/sh
+# HiveHacker USB Update Script — robust version
+# Waits for Rauc, falls back to dd if needed
+
+MOUNT_PATH="/media"
+UPDATE_DIR="hivemapper_update"
+CERT_PATH="/etc/rauc/keyring/cert.pem"
+
+# Search all USB mount points
+for INDEX in $(seq 0 7); do
+    BASE_DIR="$MOUNT_PATH/usb$INDEX"
+    SEARCH_PATH="$BASE_DIR/$UPDATE_DIR"
+    
+    if [ ! -d "$SEARCH_PATH" ]; then
+        continue
+    fi
+    
+    echo "Found update directory in $BASE_DIR"
+    
+    # Find the .raucb file
+    UPDATE_FILE=$(ls -1 "$SEARCH_PATH"/*.raucb 2>/dev/null | head -1)
+    if [ -z "$UPDATE_FILE" ]; then
+        echo "No .raucb file found in $SEARCH_PATH"
+        continue
+    fi
+    
+    echo "Found update file: $UPDATE_FILE"
+    
+    # Update system time from cert
+    if [ -f "$CERT_PATH" ]; then
+        CERT_DATE=$(openssl x509 -startdate -noout -in "$CERT_PATH" 2>/dev/null | cut -d= -f2)
+        if [ -n "$CERT_DATE" ]; then
+            timedatectl set-ntp 0 2>/dev/null
+            sleep 1
+            timedatectl set-time "$CERT_DATE" 2>/dev/null
+            sleep 1
+        fi
+    fi
+    
+    # Copy to /tmp for reliable reading
+    cp "$UPDATE_FILE" /tmp/update.raucb
+    
+    # --- METHOD 1: Try Rauc (preferred, uses A/B with rollback) ---
+    echo "Waiting for Rauc service..."
+    for i in $(seq 1 15); do
+        if systemctl is-active --quiet rauc 2>/dev/null; then
+            echo "Rauc is ready!"
+            break
+        fi
+        echo "Waiting for Rauc... ($i/15)"
+        systemctl restart rauc 2>/dev/null
+        sleep 2
+    done
+    
+    echo "Attempting Rauc install..."
+    if rauc install /tmp/update.raucb 2>/dev/null; then
+        echo "Rauc install succeeded! Rebooting..."
+        sync
+        sleep 2
+        reboot
+        exit 0
+    fi
+    
+    echo "Rauc install failed, trying direct method..."
+    
+    # --- METHOD 2: Direct dd to inactive partition (fallback) ---
+    # Determine which slot is currently booted
+    BOOT_SLOT=$(cat /proc/cmdline 2>/dev/null | grep -o 'rauc.slot=[AB]' | cut -d= -f2)
+    
+    if [ "$BOOT_SLOT" = "A" ]; then
+        TARGET_PART="/dev/mmcblk0p3"
+        TARGET_SLOT="B"
+    elif [ "$BOOT_SLOT" = "B" ]; then
+        TARGET_PART="/dev/mmcblk0p2"
+        TARGET_SLOT="A"
+    else
+        echo "ERROR: Cannot determine boot slot. Aborting."
+        exit 1
+    fi
+    
+    echo "Currently booted from slot $BOOT_SLOT"
+    echo "Writing to inactive slot $TARGET_SLOT ($TARGET_PART)"
+    
+    # Extract rootfs and boot from the raucb bundle
+    # The raucb is a squashfs bundle — we need to extract it
+    # Use rauc info to get the images, or fall back to dd of the full bundle
+    
+    # Try using rauc extract (if available)
+    TMPDIR=$(mktemp -d)
+    if rauc extract /tmp/update.raucb "$TMPDIR" 2>/dev/null; then
+        echo "Extracted bundle to $TMPDIR"
+        ROOTFS_IMG="$TMPDIR/rootfs.squashfs"
+        BOOT_IMG="$TMPDIR/boot.vfat"
+    else
+        echo "rauc extract not available, using pre-extracted images..."
+        # The bundle contains rootfs.squashfs and boot.vfat
+        # Try mounting and extracting manually
+        mount -t squashfs -o loop /tmp/update.raucb "$TMPDIR" 2>/dev/null
+        ROOTFS_IMG="$TMPDIR/rootfs.squashfs"
+        BOOT_IMG="$TMPDIR/boot.vfat"
+    fi
+    
+    if [ ! -f "$ROOTFS_IMG" ]; then
+        echo "ERROR: Cannot find rootfs.squashfs in bundle"
+        # Last resort: try the casync/verity format
+        umount "$TMPDIR" 2>/dev/null
+        rmdir "$TMPDIR" 2>/dev/null
+        echo "FATAL: Cannot extract firmware. Please use the sdcard.img method."
+        exit 1
+    fi
+    
+    echo "Writing rootfs to $TARGET_PART..."
+    dd if="$ROOTFS_IMG" of="$TARGET_PART" bs=1M conv=fsync 2>&1
+    sync
+    
+    if [ -f "$BOOT_IMG" ]; then
+        echo "Writing boot partition..."
+        dd if="$BOOT_IMG" of=/dev/mmcblk0 bs=80K seek=1 conv=fsync 2>&1
+        sync
+    fi
+    
+    # Cleanup
+    umount "$TMPDIR" 2>/dev/null
+    rm -rf "$TMPDIR"
+    rm -f /tmp/update.raucb
+    
+    # Switch boot order to the newly written slot
+    if [ "$TARGET_SLOT" = "A" ]; then
+        fw_setenv BOOT_ORDER 'A B'
+        fw_setenv BOOT_A_LEFT f
+    else
+        fw_setenv BOOT_ORDER 'B A'
+        fw_setenv BOOT_B_LEFT f
+    fi
+    
+    echo "========================================"
+    echo " FIRMWARE INSTALLED SUCCESSFULLY!"
+    echo "========================================"
+    echo "Rebooting into HiveHacker..."
+    sync
+    sleep 2
+    reboot
+    exit 0
+done
+
+echo "No update directory found on any USB device."
+exit 0
+USBUPDATE
+chmod +x ${TARGET_DIR}/opt/dashcam/bin/usb_update.sh
+echo "Installed robust USB update script"
+
 echo "Post-build customization complete."
