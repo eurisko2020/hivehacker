@@ -133,6 +133,12 @@ BR2_PACKAGE_HOST_UBOOT_TOOLS_ENVIMAGE_REDUNDANT=y
 BR2_PACKAGE_DASHCAMD=y
 BR2_PACKAGE_DASHCAM_WEBUI=y
 
+# LED controller (IS31FL3199 I2C chip — stock Hivemapper hardware)
+# This is the C++ binary that talks to the LED controller chip over I2C.
+# Our dashcamd led_worker.py writes /tmp/led.json, this binary reads it
+# and drives the actual hardware. Required for LED functionality.
+BR2_PACKAGE_LED_CONTROLLER=y
+
 # REMOVED packages (present in stock, removed in clean build):
 # BR2_PACKAGE_CAMERA_BRIDGE - replaced by dashcamd (H.264 hardware encoding)
 # BR2_PACKAGE_FOLDER_PURGER - replaced by dashcamd storage manager
@@ -140,7 +146,6 @@ BR2_PACKAGE_DASHCAM_WEBUI=y
 # BR2_PACKAGE_API_HEALTH_MANAGER - Hivemapper-specific, not needed
 # BR2_PACKAGE_CAMERA_SCRIPTS - Hivemapper-specific, not needed
 # BR2_PACKAGE_DATA_LOGGER - replaced by dashcamd GPS/IMU workers
-# BR2_PACKAGE_LED_CONTROLLER - replaced by dashcamd LED worker
 # BR2_PACKAGE_LORAWAN_LOGGER - LoRaWAN not present on all units, not needed
 # BR2_PACKAGE_HDC_ACL - Hivemapper access control, not needed
 # BR2_PACKAGE_ONBOARD_UPDATER - Hivemapper onboarding, not needed
