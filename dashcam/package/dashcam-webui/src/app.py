@@ -52,7 +52,11 @@ MOCK_CONFIG = {
     'parking': {'entry_timeout': '300'},
     'gps': {'osd_overlay': 'false'},
     'wifi': {'ssid': 'hivehacker58CC', 'password': 'hivehak!', 'channel': '6'},
-    'led': {'brightness': '255'},
+    'led': {
+        'power_enabled': True,
+        'gps_enabled': True,
+        'rec_enabled': True,
+    },
     'email': {
         'smtp_server': 'smtp.gmail.com',
         'smtp_port': '587',
@@ -62,6 +66,11 @@ MOCK_CONFIG = {
         'enabled': 'false',
     },
 }
+
+LED_JSON_PATH = '/tmp/led.json'
+LED_CONFIG_PATH = '/mnt/data/config/led_config.json'
+LED_NAMES = {0: 'power', 1: 'gps', 2: 'rec'}
+LED_INDICES = {'power': 0, 'gps': 1, 'rec': 2}
 
 # Simple session-based auth (for preview)
 PASSWORD_SET = False
@@ -150,6 +159,7 @@ def api_status():
         'wifi_clients': 1,
         'gps': {'fix': True, 'sats': 8, 'speed': 0.0},
         'led_state': 'RECORDING',
+        'led_config': _load_led_config(),
         'current_segment': '20260620_151500.mp4',
         'segment_elapsed': 32,
     })
@@ -189,6 +199,66 @@ def api_settings():
         data = request.json
         MOCK_CONFIG.update(data)
         return jsonify({'status': 'saved'})
+
+# === LED API ===
+
+def _load_led_config():
+    """Load persisted LED enable/disable config."""
+    try:
+        with open(LED_CONFIG_PATH, 'r') as f:
+            return json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError):
+        return {'power_enabled': True, 'gps_enabled': True, 'rec_enabled': True}
+
+def _save_led_config(config):
+    """Persist LED config to data partition."""
+    os.makedirs(os.path.dirname(LED_CONFIG_PATH), exist_ok=True)
+    with open(LED_CONFIG_PATH, 'w') as f:
+        json.dump(config, f)
+
+def _write_led_json(power_on, gps_on, rec_on):
+    """Write LED state to /tmp/led.json for the led-controller binary."""
+    leds = [
+        {'index': 0, 'red': 0, 'blue': 255, 'green': 0, 'on': power_on},
+        {'index': 1, 'red': 0, 'blue': 100, 'green': 255, 'on': gps_on},
+        {'index': 2, 'red': 255, 'blue': 0, 'green': 0, 'on': rec_on},
+    ]
+    data = {'leds': leds}
+    try:
+        tmp = LED_JSON_PATH + '.tmp'
+        with open(tmp, 'w') as f:
+            json.dump(data, f)
+        os.rename(tmp, LED_JSON_PATH)
+    except Exception as e:
+        print(f"LED JSON write error: {e}")
+
+@app.route('/api/led/<name>', methods=['POST'])
+def api_led_toggle(name):
+    """Toggle an individual LED on/off. name = power|gps|rec."""
+    if name not in LED_INDICES:
+        return jsonify({'error': 'Unknown LED: ' + name}), 400
+
+    data = request.json or {}
+    enabled = bool(data.get('enabled', False))
+
+    config = _load_led_config()
+    config[name + '_enabled'] = enabled
+    _save_led_config(config)
+
+    # Build current LED state from config
+    power_on = config.get('power_enabled', True)
+    gps_on = config.get('gps_enabled', True)
+    rec_on = config.get('rec_enabled', True)
+
+    _write_led_json(power_on, gps_on, rec_on)
+
+    return jsonify({'status': 'ok', 'led': name, 'enabled': enabled})
+
+@app.route('/api/led', methods=['GET'])
+def api_led_status():
+    """Get current LED config."""
+    config = _load_led_config()
+    return jsonify(config)
 
 
 # === EVENTS API ===

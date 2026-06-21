@@ -102,7 +102,11 @@ class ConfigLoader:
 
     def get_led_opts(self):
         return {
-            'brightness': self.getint('led', 'brightness', 255),
+            'i2c_bus': self.getint('led', 'i2c_bus', 1),
+            'i2c_addr': self.getint('led', 'i2c_addr', 0x64),
+            'power_enabled': self.getboolean('led', 'power_enabled', True),
+            'gps_enabled': self.getboolean('led', 'gps_enabled', True),
+            'rec_enabled': self.getboolean('led', 'rec_enabled', True),
         }
 
     def get_wifi_opts(self):

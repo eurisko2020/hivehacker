@@ -160,14 +160,8 @@
                 <div class="toggle-switch active" onclick="toggleLED(this, 'gps')"></div>
             </div>
             <div class="toggle-row">
-                <span><span class="toggle-icon">🔴</span><span class="toggle-label">REC LED (blinks while recording)</span></span>
+                <span><span class="toggle-icon">🔴</span><span class="toggle-label">REC LED (blinks red while recording)</span></span>
                 <div class="toggle-switch active" onclick="toggleLED(this, 'rec')"></div>
-            </div>
-            <div class="form-row" style="margin-top:0.5rem;">
-                <label>Brightness</label>
-                <input type="range" name="led.brightness" value="255" min="0" max="255"
-                       oninput="this.nextElementSibling.textContent=this.value">
-                <span>255</span>
             </div>
         </fieldset>
 
@@ -200,7 +194,7 @@
 function toggleLED(el, name) {
     el.classList.toggle('active');
     const on = el.classList.contains('active');
-    apiPost('/api/settings', {led: {[name+'_enabled']: on}});
+    apiPost('/api/led/' + name, {enabled: on});
 }
 
 function toggleEmail(el) {

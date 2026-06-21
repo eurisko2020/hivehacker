@@ -152,6 +152,13 @@ if [ -f "${TARGET_DIR}/usr/lib/systemd/system/dashcam-webui.service" ]; then
     echo "Enabled dashcam-webui.service"
 fi
 
+# Enable led-controller service (IS31FL3199 I2C LED driver)
+if [ -f "${TARGET_DIR}/usr/lib/systemd/system/led-controller.service" ]; then
+    ln -sf /usr/lib/systemd/system/led-controller.service \
+        "${TARGET_DIR}/etc/systemd/system/multi-user.target.wants/led-controller.service"
+    echo "Enabled led-controller.service"
+fi
+
 # --- Disable stock Hivemapper services we don't need ---
 for svc in wifiP2P wifiman bootbit sethostname txpower; do
     if [ -L "${TARGET_DIR}/etc/systemd/system/multi-user.target.wants/${svc}.service" ]; then
