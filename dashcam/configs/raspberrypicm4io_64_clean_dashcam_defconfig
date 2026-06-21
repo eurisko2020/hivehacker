@@ -138,6 +138,11 @@ BR2_PACKAGE_DASHCAM_WEBUI=y
 # Our dashcamd led_worker.py writes /tmp/led.json, this binary reads it
 # and drives the actual hardware. Required for LED functionality.
 BR2_PACKAGE_LED_CONTROLLER=y
+# Dependencies for led-controller
+BR2_PACKAGE_BOOST=y
+BR2_PACKAGE_BOOST_FILESYSTEM=y
+BR2_PACKAGE_BOOST_PROGRAM_OPTIONS=y
+BR2_PACKAGE_JSON_FOR_MODERN_CPP=y
 
 # REMOVED packages (present in stock, removed in clean build):
 # BR2_PACKAGE_CAMERA_BRIDGE - replaced by dashcamd (H.264 hardware encoding)
